@@ -1,0 +1,152 @@
+<!doctype html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Recorder</title>
+    <script src="linkedList.js"></script>
+</head>
+
+<body>
+    <canvas id="canvas" width="600" height="400" style="border:double;"></canvas>
+    <form>
+        <input type="button" id="start" value="Start Recording" onclick="startRecording()">
+        <input type="button" id="stop" value="Stop Recording" onclick="stopRecording()">
+        <input type="button" id="play" value="Play" onclick="playRecording()">
+        <input type="button" id="save" value="Save Recording" onclick="saveRecording()">
+        <input type="button" id="retrueve" value="Retrieve Saved Recording" onclick="retrieveRecording()">
+        <input type="button" id="changeColor" value="Change Drawing Color" onclick="changeDrawing()">
+        <input type="button" id="reset" value="Clear Screen" onclick="clearCanvas()" />
+    </form>
+
+    <script>
+        "use strict";
+
+        let color = "red";
+        let sideLength = 5;
+        let self = this;
+
+        main();
+        let drawingList = new LinkedList(); 
+        let isRecording = false;
+
+        function main() {
+            let drawingList = localStorage.getItem("drawing");
+            
+            document.writeln("<p>");
+            document.writeln("<h1>How to use my amazing drawing recorder?</h1><br>");
+            document.writeln("After clicking the 'Start Recording' button, move the mouse in the above area to draw.<br><br>");
+            document.writeln("If you wish to replay your drawing, click 'Stop Recoding' and then click 'Play'.<br><br>");
+            document.writeln("If you wish to save your drawing, click 'Stop Recoding' and then click 'Save recording'.<br>");
+            document.writeln("Then you could retrieve your most recent drawing and play it, using the 'Retrieve Saved Recording' button and 'Play' button.<br><br>");
+            document.writeln("The 'Change Drawing Color' button offers two different color: red and blue, the default color is red.");
+            document.writeln("</p>");
+        }
+
+        function startRecording() {
+            clearCanvas();
+            isRecording = true;
+            drawingList = new LinkedList();
+            document.onmousemove = processMousePosition;
+        }
+
+        function stopRecording() {
+            //let c = document.getElementById("canvas");
+            //c.getContext("2d").drawImage(c,5,5);
+            isRecording = false;
+            document.onmousemove = hang;
+        }
+
+        function playRecording() {
+            if (isRecording) {
+                alert("You need to stop recording first!")
+            } else {
+            // clear scrreen first, then draw
+            clearCanvas();
+            //let savedRecording = JSON.parse(localStorage.getItem("drawing"));
+            let curr = drawingList.head;
+            let listSize = drawingList.length;
+            let timeDiff = curr.next.data.time - curr.data.time;
+
+            let scheduleDraw = function(curr, timeDiff) {
+                setTimeout(function() {
+                    draw(curr.data.x, curr.data.y, curr.data.color);
+                    if (curr.next) {
+                        let timeDiff2 = curr.next.data.time - curr.data.time;
+                        scheduleDraw(curr.next, timeDiff2);
+                    }
+                }, timeDiff);
+            }
+            scheduleDraw(curr, 0);
+            }
+        }
+
+        function saveRecording() {
+            if (isRecording) {
+                alert("You need to stop recording first!")
+            } else {
+                localStorage.setItem("drawingList", JSON.stringify(drawingList));
+            }
+            
+        }
+
+        function retrieveRecording() {
+            let savedRecording = JSON.parse(localStorage.getItem("drawingList"));
+            console.log(savedRecording);
+            if (!savedRecording) {
+                alert("No saved recording.");
+            } else {
+                drawingList = savedRecording;
+                alert("Drawing retrieved! Click 'play' to see.");
+            }
+        }
+
+        function hang() {
+            // doing absolute nothing
+        }
+
+        function processMousePosition(evt) {
+            draw(evt.pageX, evt.pageY, color);
+            // adding current postion info to the list
+            let dot = {
+                x: evt.pageX,
+                y: evt.pageY,
+                color: color,
+                time: (new Date()).getTime()
+            }
+            drawingList.addLast(dot);
+        }
+
+        function draw(xPos, yPos, usedColor) {
+            let context = document.getElementById("canvas").getContext("2d");
+            context.fillStyle = usedColor;
+            context.fillRect(xPos, yPos, sideLength, sideLength);
+        }
+
+        function changeColor() {
+            if (color === "red") {
+                color = "white";
+                sideLength = 500;
+            } else {
+                color = "red";
+                sideLength = 5;
+            }
+        }
+
+        function changeDrawing() {
+            if (color === "red") {
+                color = "blue";
+            } else if (color === "blue") {
+                color = "red";
+            }
+        }
+
+        function clearCanvas() {
+            let context = document.getElementById("canvas").getContext("2d");
+            context.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+    </script>
+</body>
+
+</html>
