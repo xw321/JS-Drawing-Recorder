@@ -12,4 +12,4 @@ It supports functions like
 The main page looks like this:
 
 
-![Main Page](/images/main.png)
+![Main Page](/img/main.png)
